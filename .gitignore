@@ -1,0 +1,66 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions (if you build any)
+*.so
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+*.whl
+
+# Virtual environments
+venv/
+env/
+.venv/
+.venv*/
+
+# Testing / coverage
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+.tox/
+
+# Type checking
+.mypy_cache/
+.pyre/
+# Add other type checker caches if you use them
+
+# IDE / Editor settings
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+*.swp
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Environment / Secrets
+.env
+.env.local
+.env.*
+
+# Database files
+*.sqlite3
+*.db
+
+# Notebooks checkpoints (if using Jupyter)
+.ipynb_checkpoints/
+
+# Misc (custom / project-specific)
+# For example, if you generate docs:
+docs/_build/
+# Or if you have generated files not to commit:
+generated/
