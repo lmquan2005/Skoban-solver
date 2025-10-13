@@ -1,4 +1,5 @@
 from collections import defaultdict
+from deadlock import *
 from map import *
 
 
@@ -7,6 +8,7 @@ class State:
         self.map = map
         self.boxes = map.boxes
         self.player = map.player
+        self.deadlock_detector = DeadlockDetector(self)
     
     def __hash__(self):
         return hash((self.boxes, self.player))
@@ -26,7 +28,6 @@ class State:
         available_moves, visited = [], []
         norm_pos = self.player
         stack = [norm_pos]
-        self.pull_reachable = self._detect_simple_deadlock()
         
         # Find normalized position by DFS
         while stack:
@@ -46,7 +47,7 @@ class State:
                 
                 if new_pos in self.boxes:
                     new_box_pos = new_pos + delta
-                    if new_box_pos not in (self.map.walls | self.boxes) and new_box_pos in self.pull_reachable:
+                    if new_box_pos not in (self.map.walls | self.boxes) and not self.deadlock_detector.is_deadlock(new_box_pos):
                         available_moves.append((new_pos, delta))
                 else:
                     stack.append(new_pos)
@@ -55,28 +56,6 @@ class State:
     
     def is_finished(self):
         return len(self.map.goals - self.boxes) == 0
-    
-    
-    def _detect_simple_deadlock(self):
-        stack = list(self.map.goals)
-        visited = set()
-
-        while stack:
-            pos = stack.pop(0)
-            visited.add(pos)
-
-            for delta in DIRECTION.values():
-                new_pos = pos + delta
-                if any([
-                        new_pos in visited,
-                        new_pos in self.map.walls,
-                        new_pos + delta in self.map.walls
-                ]):
-                    continue
-                
-                stack.append(new_pos)
-        
-        return visited
 
 
 class StateSet:
