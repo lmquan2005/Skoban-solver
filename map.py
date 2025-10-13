@@ -55,13 +55,15 @@ BOX = "\033[38;5;172m■\033[0m"
 BOX_ON_GOAL = "\033[38;5;82m■\033[0m"
 GOAL = "\033[38;5;196m●\033[0m"
 PLAYER = "\033[38;5;21m☺\033[0m"
+PLAYER_ON_GOAL = "\033[38;5;196m☺\033[0m"
 FLOOR = " "
 
 TXT_WALL = frozenset(["#", "W"])
 TXT_BOX = frozenset(["B"])
-TXT_BOX_ON_GOAL = frozenset(["X"])
 TXT_GOAL = frozenset([".", "G"])
+TXT_BOX_ON_GOAL = frozenset(["X"])
 TXT_PLAYER = frozenset(["&", "P", "@"])
+TXT_PLAYER_ON_GOAL = frozenset(["Y"])
 TXT_FLOOR = frozenset([" ", "_", "-"])
 
 DEFAULT_WALL = "#"
@@ -69,6 +71,7 @@ DEFAULT_BOX = "B"
 DEFAULT_BOX_ON_GOAL = "X"
 DEFAULT_GOAL = "."
 DEFAULT_PLAYER = "&"
+DEFAULT_PLAYER_ON_GOAL = "Y"
 DEFAULT_FLOOR = " "
 
 class Map:
@@ -112,6 +115,9 @@ class Map:
                     goals.append(pos)
                 elif char in TXT_PLAYER:
                     player = pos
+                elif char in TXT_PLAYER_ON_GOAL:
+                    player = pos
+                    goals.append(pos)
                 elif char in TXT_FLOOR:
                     continue
                 else:
@@ -136,6 +142,8 @@ class Map:
                 
                 if is_goal and is_box:
                     row.append(DEFAULT_BOX_ON_GOAL)
+                elif is_goal and is_player:
+                    row.append(DEFAULT_PLAYER_ON_GOAL)
                 elif is_box:
                     row.append(DEFAULT_BOX)
                 elif is_goal:
@@ -179,6 +187,8 @@ class Map:
                 
                 if is_goal and is_box:
                     row.append(BOX_ON_GOAL)
+                elif is_goal and is_player:
+                    row.append(PLAYER_ON_GOAL)
                 elif is_box:
                     row.append(BOX)
                 elif is_goal:
