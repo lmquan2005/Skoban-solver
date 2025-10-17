@@ -4,7 +4,13 @@ class DeadlockDetector:
     def __init__(self, state):
         self.state = state
         self.reachable_pulls = self.get_reachable_pulls()
+
     
+    def is_deadlock(self, box_pos):
+        return (
+            self.is_simple_deadlock(box_pos) or
+            self.is_freeze_deadlock()
+        )
 
     def get_reachable_pulls(self):
         stack = list(self.state.map.goals)
@@ -27,38 +33,48 @@ class DeadlockDetector:
         
         return visited
 
+
     def is_simple_deadlock(self, pos):
         return pos not in self.reachable_pulls
-    
-    def is_freeze_deadlock(self, box_pos):
-        return self.is_axis_freeze("x", box_pos) and self.is_axis_freeze("y", box_pos)
-    
-    def is_axis_freeze(self, axis, box_pos, prev_box=None):
-        walls, boxes = self.state.map.walls, self.state.boxes
-        up_pos = box_pos + (DIRECTION["up"] if axis == "x" else DIRECTION["left"])
-        down_pos = box_pos + (DIRECTION["down"] if axis == "x" else DIRECTION["right"])
-        
-        if up_pos in walls or down_pos in walls:
-            return True
-        if self.is_simple_deadlock(up_pos) and self.is_simple_deadlock(down_pos):
-            return True
-        
-        if prev_box is not None:
-            if up_pos == prev_box and down_pos in boxes and self.is_axis_freeze(axis, down_pos, box_pos):
-                return True
-            if down_pos == prev_box and up_pos in boxes and self.is_axis_freeze(axis, up_pos, box_pos):
-                return True
-        else:
-            if up_pos in boxes and self.is_axis_freeze(axis, up_pos, box_pos):
-                return True
-            if down_pos in boxes and self.is_axis_freeze(axis, down_pos, box_pos):
-                return True
-        
-        return False
-        
 
-    def is_deadlock(self, box_pos):
-        return (
-            self.is_simple_deadlock(box_pos)
-            # or self.is_freeze_deadlock(box_pos)
-        )
+
+    def detect_frozen_boxes(self):
+        walls = set(self.state.map.walls)
+        goals = set(self.state.map.goals)
+        boxes = set(self.state.map.boxes)
+        frozen = set()
+        
+        def is_blocked(box):
+            return (box in walls) or (box in frozen)
+        
+        for box in boxes:
+            if box in goals:
+                continue
+            if ((box + DIRECTION["up"] in walls or box + DIRECTION["down"] in walls) and
+                (box + DIRECTION["left"] in walls or box + DIRECTION["right"] in walls)):
+                frozen.add(box)
+        
+        changed = True
+        while changed:
+            changed = False
+            for box in boxes:
+                if box in goals or box in frozen:
+                    continue
+                
+                up = box + DIRECTION["up"]
+                down = box + DIRECTION["down"]
+                left = box + DIRECTION["left"]
+                right = box + DIRECTION["right"]
+                
+                x_blocked = is_blocked(up) and is_blocked(down)
+                y_blocked = is_blocked(left) and is_blocked(right)
+                if x_blocked and y_blocked:
+                    frozen.add(box)
+                    changed = True
+        return frozen
+
+
+    def is_freeze_deadlock(self):
+        frozen = self.detect_frozen_boxes()
+        goals = set(self.state.map.goals)
+        return any(fz not in goals for fz in frozen)
