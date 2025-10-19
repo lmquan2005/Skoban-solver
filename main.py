@@ -1,7 +1,7 @@
 import pygame
 from pygame.locals import *
 import time
-
+from Heuristic import read_sokoban_map,a_star_sokoban
 #General setup
 pygame.init()
 WINDOW_WIDTH, WINDOW_HEIGHT = 1200, 800
@@ -491,6 +491,39 @@ if __name__ == '__main__':
 
 		if step == 2 and win == 0 and mode == 1:
 			timeTook = time.time() - startTime
+		if mode == 3 and step == 2 and win == 0 and visualized == 0:
+			grid, player1, boxes1, goals1 = read_sokoban_map(name)
+			start_time = time.time()
+			path = a_star_sokoban(grid, player1, boxes1, goals1)
+			timeTook = time.time() - start_time
+
+			if path:
+				actions = []
+				px, py = player
+				current_boxes = set(boxes)
+				for move_char in path:
+					dir_map = {'U': U, 'D': D, 'L': L, 'R': R}
+					direction = dir_map[move_char]
+					_, is_pushed, (px, py), current_boxes = move((px, py), current_boxes, direction)
+					actions.append((direction, is_pushed))
+				visualized = 1
+				ptr = -1
+			else:
+				win = 2
+
+		if visualized == 1 and step == 2 and win == 0:
+			if ptr + 1 < len(actions):
+				ptr += 1
+				direction, is_pushed = actions[ptr]
+				_, pushed_inc, player, boxes = move(player, boxes, direction)
+				pushed += pushed_inc
+				stepNode += 1
+				
+				draw_board()            # vẽ lại bản đồ sau mỗi bước
+				pygame.display.update() # cập nhật màn hình
+				pygame.time.delay(150)  # dừng 100ms
+			else:
+				win = 1
 
 		for event in pygame.event.get():
 			keys_pressed = pygame.key.get_pressed()
