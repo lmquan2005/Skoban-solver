@@ -1,7 +1,17 @@
 import pygame
-from pygame.locals import *
 import time
+from pygame.locals import *
+import os
+import psutil
+from queue import Queue
+from copy import copy, deepcopy
+from datetime import datetime
+import math
+from sortedcontainers import SortedList
+import numpy as np
+from scipy.optimize import linear_sum_assignment
 from Heuristic import read_sokoban_map,a_star_sokoban
+
 #General setup
 pygame.init()
 WINDOW_WIDTH, WINDOW_HEIGHT = 1200, 800
@@ -10,6 +20,7 @@ pygame.display.set_caption("Sokoban Solver")
 running = True
 clock = pygame.time.Clock()
 FPS = 60
+itemMemory = psutil.Process(os.getpid()).memory_info().rss/(1024*1024)
 
 #---------------------
 # Setup Colors 
@@ -68,7 +79,7 @@ history = 0
 name = ''
 actions = []
 ptr = -1
-
+a_star_path = []
 
 #---------------------
 # Setup Items 
@@ -100,6 +111,9 @@ undo_button = pygame.transform.scale(undo_button, (35, 35))
 redo_button = pygame.image.load("Items/redo.png")
 redo_button = pygame.transform.scale(redo_button, (35, 35))
 
+
+visualize_button = pygame.image.load("Items/visualizebutton.png")
+
 #---------------------
 # Setup Rectangles
 #---------------------
@@ -109,11 +123,12 @@ up_arrow_rect = Rect(810 + 120, 235, 20, 20)
 down_arrow_rect = Rect(810 + 120, 255, 20, 20)
 
 manual_rect = Rect(830, 330, 100, 48)
-bfs_rect = Rect(830 + 120, 330, 100, 48)
+dfs_rect = Rect(830 + 120, 330, 100, 48)
 A_rect = Rect(830 + 240, 330, 100, 48)
 start_rect = Rect(820 + 86, 400, 185, 40)
 
 restart_rect = Rect(820 + 130, 650, 100, 40)
+visualize_rect = Rect(820 + 135, 0 + 750, 161, 34)
 undo_rect = Rect(820 + 80, 650, 40, 40)
 redo_rect = Rect(820 + 240, 650, 40, 40)
 
@@ -199,7 +214,7 @@ def display_bfs_button(mode_selected):
 	if mode_selected == 2:
 		pygame.draw.rect(surface, YELLOW, pygame.Rect(830 + 120 - 1, 330 - 1, 100 + 2, 48 + 2),  0, 6)
 	pygame.draw.rect(surface, BLACK, pygame.Rect(830 + 120, 330, 100, 48),  0, 6)
-	text_bfs = buttonFont.render("BFS", True, YELLOW)
+	text_bfs = buttonFont.render("DFS", True, YELLOW)
 	surface.blit(text_bfs, [834 + 120 + 25, 342])
 
 def display_A_button(mode_selected):
@@ -268,6 +283,9 @@ def display_button_redo():
 	pygame.draw.rect(surface, RED, pygame.Rect(820 + 240, 650, 40, 40),  0, 6)
 	surface.blit(redo_button, [820 + 242, 652])
 
+def display_visualize():
+	surface.blit(visualize_button, [820 + 135, 0 + 747])
+
 def display_content_step_2():
 	status_str = ""
 	if win == -1:
@@ -305,6 +323,8 @@ def display_step_2():
 	display_button_undo()
 	display_button_redo()
 	display_content_step_2()
+	if mode > 1 and win == 1:
+			display_visualize()
 
 
 def draw_menu():
@@ -476,42 +496,179 @@ def set_value(filename):
 			y += 1
 	return walls, goals, tuple(boxes), paths, player, x, y
 
+def set_distance():
+	distanceToGoal = dict()
+	dead_squares = set()
+	for goal in goals:
+		distanceToGoal[goal] = dict()
+		for path in paths:
+			distanceToGoal[goal][path] = 1e9
+	queue = Queue()
+	for goal in goals:
+		distanceToGoal[goal][goal] = 0
+		queue.put(goal)
+		while not queue.empty():
+			position = queue.get()
+			for direction in directions:
+				boxPosition = (position[0] + direction.vector[0], position[1] + direction.vector[1])
+				playerPosition = (position[0] + 2*direction.vector[0], position[1] + 2*direction.vector[1])
+				if boxPosition in paths:
+					if distanceToGoal[goal][boxPosition] == 1e9:
+						if (boxPosition not in walls) and (playerPosition not in walls):
+							distanceToGoal[goal][boxPosition] = distanceToGoal[goal][position] + 1
+							queue.put(boxPosition)
+	# Add dead squares
+	for path in paths:
+		ok = 1
+		for goal in goals:	
+			if distanceToGoal[goal][path] != 1e9:
+				ok = 0
+				break
+		if ok == 1:
+			dead_squares.add(path)
+	return distanceToGoal, dead_squares
+#----------------------
+# Exporting The Results
+#----------------------
+def print_results(board, gen, rep, expl, memo, dur):
+	if mode == 2:
+		print("\n-- Algorithm: Breadth first search --")
+	elif mode == 3:
+		print("\n-- Algorithm: A star --")
+	print("Sequence: ", end="")
+	for ch in board.history_moves:
+		print(ch.direction.char, end=" ")
+	print("\nNumber of steps: " + str(board.step))
+	print("Nodes generated: " + str(gen))
+	print("Nodes repeated: " + str(rep))
+	print("Nodes explored: " + str(expl))
+	print("Memory: ", str(memo), " MB")  # in megabytes
+	print('Duration: ' + str(dur) + ' secs')
+
+def line_prepender(filename, algo, sol, ste, gen, rep, expl, memo, dur):
+	if not os.path.exists('Results'):
+		os.mkdir('Results')
+	if not os.path.exists(filename):
+		open(filename, 'w+')
+	with open(filename, 'r+') as f:
+		content = f.read()
+		f.seek(0, 0)
+		dt_string = datetime.now().strftime("%d/%m/%Y %H:%M:%S %p")
+		f.write("Datatime (UTC+7): " + dt_string + '\n')
+		f.write("Problem: " + name.split('./')[-1] + '\n')
+		f.write("Algorithm: " + algo + '\n')
+		f.write("Solution: " + sol + '\n')
+		f.write("Number of steps: " + str(ste) + '\n')
+		f.write("Nodes generated: " + str(gen) + '\n')
+		f.write("Nodes repeated: " + str(rep) + '\n')
+		f.write("Nodes explored: " + str(expl) + '\n')
+		f.write("Memory: " + str(memo) + ' MB' + '\n')
+		f.write("Duration: " + str(dur) + " secs" + '\n')
+		f.write("\n\n")
+		f.write("===================================================" + '\n')
+		f.write("===================================================" + '\n')
+		f.write("\n\n")
+		f.write(content)
+
+def add_history(algo, sol, ste, gen, rep, expl, memo, dur):
+	line_prepender('Results/history_log.txt', algo, sol, ste, gen, rep, expl, memo, dur)
+	line_prepender('Results/Solution_{}_test {}'.format(name.split('/')[2], name.split('/')[3]), algo, sol, ste, gen, rep, expl, memo, dur)
+
+def get_history_moves(actions):
+	return ", ".join(list(map(lambda move: move[0].char, actions)))
+
+#-----------------
+# Setting Alogorithms
+#-----------------
+def dfs(curr_player, curr_boxes):
+	global win, timeTook, startTime
+	node_repeated = 0
+	node_generated = 0
+	frontier = [(curr_player, curr_boxes, 0, 0, [])]  
+	explored = set([(curr_player, curr_boxes)])
+	startTime = time.time()
+
+	while frontier:
+		now_player, now_boxes, steps, push, actions = frontier.pop()  
+
+		moves = set_available_moves(now_player, now_boxes)
+		for m in moves:
+			res, is_pushed, new_player, new_boxes = move(now_player, now_boxes, m)
+			node_generated += 1
+
+			if res and (new_player, new_boxes) not in explored:
+				explored.add((new_player, new_boxes))
+
+				if is_win(goals, new_boxes):
+					timeTook = time.time() - startTime
+					win = 1
+					memo_info = psutil.Process(os.getpid()).memory_info().rss / (1024 * 1024) - itemMemory
+					add_history(
+						"Depth First Search",
+						get_history_moves(actions + [(m, is_pushed)]),
+						steps + 1,
+						node_generated,
+						node_repeated,
+						len(explored),
+						memo_info,
+						timeTook
+					)
+					return (node_generated, steps + 1, timeTook, memo_info, actions + [(m, is_pushed)])
+
+				frontier.append((new_player, new_boxes, steps + 1, push + is_pushed, actions + [(m, is_pushed)]))
+			else:
+				node_repeated += 1
+
+	return (node_generated, 0, timeTook, memo_info, [])
+
 #-----------------
 # Run Program
 #-----------------
 if __name__ == '__main__':
 	name = "./Testcases/{}/{}.txt".format(map_list[0],1)
 	walls, goals, boxes, paths, player, _, _ = set_value(name)
-	
+	distanceToGoal, dead_squares = set_distance()
 	while running:
 		clock.tick(FPS)
 
 		if is_win(goals, boxes) == True and mode == 1:
 			win = 1
+			if history == 0:
+				add_history("Manually", get_history_moves(actions), stepNode, 0, 0, 0, 0, timeTook)
+				history = 1
 
 		if step == 2 and win == 0 and mode == 1:
 			timeTook = time.time() - startTime
-		if mode == 3 and step == 2 and win == 0 and visualized == 0:
+		if step == 2 and mode == 3 and win == 0 and visualized == 0 and not a_star_path:
+			# 1️⃣ Giai đoạn tìm đường (chưa visualize)
 			grid, player1, boxes1, goals1 = read_sokoban_map(name)
 			start_time = time.time()
-			path = a_star_sokoban(grid, player1, boxes1, goals1)
+			path, node_generated, node_repeated, node_explored = a_star_sokoban(grid, player1, boxes1, goals1)
 			timeTook = time.time() - start_time
 
 			if path:
-				actions = []
-				px, py = player
-				current_boxes = set(boxes)
-				for move_char in path:
-					dir_map = {'U': U, 'D': D, 'L': L, 'R': R}
-					direction = dir_map[move_char]
-					_, is_pushed, (px, py), current_boxes = move((px, py), current_boxes, direction)
-					actions.append((direction, is_pushed))
-				visualized = 1
-				ptr = -1
+				a_star_path = path
+				win = 1
+
+				# 🧮 Thống kê & lưu lại
+				memo_info = psutil.Process(os.getpid()).memory_info().rss / (1024 * 1024) - itemMemory
+				add_history(
+					"A* Search",
+					", ".join(path),                # chuỗi hướng đi
+					len(path),                      # số bước
+					node_generated,                              # node generated (không có, đặt 0)
+					node_repeated,                              # node repeated (không có, đặt 0)
+					node_explored,                              # node explored (không có, đặt 0)
+					memo_info,
+					timeTook
+				)
+				print(f"✅ A* solved in {len(path)} steps, {timeTook:.3f}s, memory: {memo_info:.3f} MB")
+
 			else:
 				win = 2
+				print("❌ No solution found by A*.")
 
-		if visualized == 1 and step == 2 and win == 0:
+		if visualized == 1 and step == 2 :
 			if ptr + 1 < len(actions):
 				ptr += 1
 				direction, is_pushed = actions[ptr]
@@ -524,6 +681,17 @@ if __name__ == '__main__':
 				pygame.time.delay(150)  # dừng 100ms
 			else:
 				win = 1
+		if step == 2 and mode == 2 and win == 0:
+			(node_created, steps, times, memo, moves) = dfs(player, boxes)
+        
+		if len(moves) > 0 and visualized == 1:
+			(_, is_pushed, player, boxes) = move(player, boxes, moves[0][0])
+			actions.append(moves[0])
+			moves.pop(0)
+			stepNode += 1
+			pushed += is_pushed
+			ptr += 1
+			time.sleep(0.3)
 
 		for event in pygame.event.get():
 			keys_pressed = pygame.key.get_pressed()
@@ -591,7 +759,7 @@ if __name__ == '__main__':
 					if manual_rect.collidepoint(x,y):
 						mode = 1
 						# startTime = time.time()
-					if bfs_rect.collidepoint(x,y): 
+					if dfs_rect.collidepoint(x,y): 
 						mode = 2
 						continue
 					if A_rect.collidepoint(x,y):
@@ -599,6 +767,12 @@ if __name__ == '__main__':
 						continue
 					if start_rect.collidepoint(x,y):
 						if mode != 0:
+							a_star_path = []
+							visualized = 0
+							win = 0
+							actions = []
+							ptr = -1
+							moves = []
 							step = 2
 							startTime = time.time()
 				if step == 2:
@@ -608,47 +782,30 @@ if __name__ == '__main__':
 					if mode == 1:
 						pass
 					if mode == 2:
-						pass
+						if restart_rect.collidepoint(x,y):
+							init_data()
+							step = 1
+						if win == 1:
+							if visualized == 0:
+								if visualize_rect.collidepoint(x,y):
+									visualized = 1
 					if mode == 3:
-						pass
-
-				# if step == 3:
-				# 	if mode == 1:
-				# 		if restart_rect.collidepoint(x,y):
-				# 			init_data()
-				# 			step = 1
-				# 		if undo_rect.collidepoint(x,y):
-				# 			undo()
-				# 		if redo_rect.collidepoint(x,y):
-				# 			redo()
-				# 	if mode == 2:
-				# 		#Bfs
-				# 		if restart_rect.collidepoint(x,y):
-				# 			init_data()
-				# 			step = 1
-				# 		if win == 1:
-				# 			if visualized == 0:
-				# 				if visualize_rect.collidepoint(x,y):
-				# 					visualized = 1
-				# 			else:
-				# 				if undo_rect.collidepoint(x,y):
-				# 					undo()
-				# 				if redo_rect.collidepoint(x,y):
-				# 					redo()
-				# 	if mode == 3:
-				# 		# A_star
-				# 		if restart_rect.collidepoint(x,y):
-				# 			init_data()
-				# 			step = 1
-				# 		if win == 1:
-				# 			if visualized == 0:
-				# 				if visualize_rect.collidepoint(x,y):
-				# 					visualized = 1
-				# 			else:
-				# 				if undo_rect.collidepoint(x,y):
-				# 					undo()
-				# 				if redo_rect.collidepoint(x,y):
-				# 					redo()
+						if restart_rect.collidepoint(x, y):
+							init_data()
+							step = 1
+						if win == 1 and a_star_path and visualize_rect.collidepoint(x, y):
+							# 2️⃣ Khi bấm "Visualize", bắt đầu chạy đường đi
+							actions = []
+							px, py = player
+							current_boxes = set(boxes)
+							for move_char in a_star_path:
+								dir_map = {'U': U, 'D': D, 'L': L, 'R': R}
+								direction = dir_map[move_char]
+								_, is_pushed, (px, py), current_boxes = move((px, py), current_boxes, direction)
+								actions.append((direction, is_pushed))
+							visualized = 1
+							ptr = -1
+						
 		draw_board()
 		pygame.display.update()
 	pygame.quit()

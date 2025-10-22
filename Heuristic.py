@@ -1,6 +1,7 @@
 import heapq
 from collections import deque
 import time
+
 def is_deadlock(pos, goals, grid):
     """Phát hiện deadlock đơn giản: thùng bị kẹt trong góc tường (2 tường vuông góc)."""
     x, y = pos
@@ -25,8 +26,6 @@ def is_deadlock(pos, goals, grid):
         return True
 
     return False
-
-
 
 
 # Heuristic: tổng khoảng cách Manhattan từ mỗi thùng đến goal gần nhất
@@ -75,14 +74,24 @@ def a_star_sokoban(grid, start, boxes, goals):
     visited = set()
     moves = [(1,0,'D'),(-1,0,'U'),(0,1,'R'),(0,-1,'L')]
 
+    # 🧮 Thống kê node
+    nodes_generated = 1   # trạng thái khởi tạo
+    nodes_repeated = 0
+    nodes_explored = 0
+
     while pq:
         f, g, (player, boxes), path = heapq.heappop(pq)
 
+        # Mỗi lần lấy ra khỏi hàng đợi => 1 node được explore
+        nodes_explored += 1
+
+        # Kiểm tra đích
         if all(b in goals for b in boxes):
-            print("✅ Giải thành công sau", len(visited), "trạng thái duyệt.")
-            return path
+            print(f"✅ Giải thành công sau {nodes_explored} trạng thái duyệt, {nodes_generated} node sinh ra.")
+            return path, nodes_generated, nodes_repeated, nodes_explored
 
         if (player, boxes) in visited:
+            nodes_repeated += 1
             continue
         visited.add((player, boxes))
 
@@ -109,14 +118,17 @@ def a_star_sokoban(grid, start, boxes, goals):
 
             new_state = ((nx, ny), tuple(sorted(new_boxes)))
             if new_state in visited:
+                nodes_repeated += 1
                 continue
 
             new_g = g + 1
             h_val = heuristic((nx, ny), new_boxes, goals)
             heapq.heappush(pq, (new_g + h_val, new_g, new_state, path + move))
+            nodes_generated += 1
 
-    print("❌ Không tìm được lời giải.")
-    return None
+    print(f"❌ Không tìm được lời giải. Tổng explored: {nodes_explored}, generated: {nodes_generated}")
+    return None, nodes_generated, nodes_repeated, nodes_explored
+
 
 def read_sokoban_map(filename):
     """
