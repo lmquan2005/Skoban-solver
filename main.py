@@ -640,17 +640,33 @@ if __name__ == '__main__':
 		if step == 2 and win == 0 and mode == 1:
 			timeTook = time.time() - startTime
 		if step == 2 and mode == 3 and win == 0 and visualized == 0 and not a_star_path:
-            # 1️⃣ Giai đoạn tìm đường (chưa visualize)
+			# 1️⃣ Giai đoạn tìm đường (chưa visualize)
 			grid, player1, boxes1, goals1 = read_sokoban_map(name)
 			start_time = time.time()
-			path = a_star_sokoban(grid, player1, boxes1, goals1)
+			path, node_generated, node_repeated, node_explored = a_star_sokoban(grid, player1, boxes1, goals1)
 			timeTook = time.time() - start_time
 
 			if path:
-				a_star_path = path  # lưu lại để visualize sau
-				win = 1  # trạng thái: đã có lời giải nhưng chưa xem
+				a_star_path = path
+				win = 1
+
+				# 🧮 Thống kê & lưu lại
+				memo_info = psutil.Process(os.getpid()).memory_info().rss / (1024 * 1024) - itemMemory
+				add_history(
+					"A* Search",
+					", ".join(path),                # chuỗi hướng đi
+					len(path),                      # số bước
+					node_generated,                              # node generated (không có, đặt 0)
+					node_repeated,                              # node repeated (không có, đặt 0)
+					node_explored,                              # node explored (không có, đặt 0)
+					memo_info,
+					timeTook
+				)
+				print(f"✅ A* solved in {len(path)} steps, {timeTook:.3f}s, memory: {memo_info:.3f} MB")
+
 			else:
-				win = 2  # không có lời giải
+				win = 2
+				print("❌ No solution found by A*.")
 
 		if visualized == 1 and step == 2 :
 			if ptr + 1 < len(actions):
@@ -751,6 +767,12 @@ if __name__ == '__main__':
 						continue
 					if start_rect.collidepoint(x,y):
 						if mode != 0:
+							a_star_path = []
+							visualized = 0
+							win = 0
+							actions = []
+							ptr = -1
+							moves = []
 							step = 2
 							startTime = time.time()
 				if step == 2:

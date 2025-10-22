@@ -1,0 +1,32 @@
+Datatime (UTC+7): 22/10/2025 20:25:56 PM
+Problem: Testcases/MICRO COSMOS/1.txt
+Algorithm: A* Search
+Solution: R, R, R, U, U, L, D, R, D, L, L, U, L, D, L, D, D, R, R, U, D, L, L, U, U, R, D, U, U, R, R, D, L, U, L, D, L, L, L, U, U, R, D, R, L, L, D, R, R
+Number of steps: 49
+Nodes generated: 0
+Nodes repeated: 0
+Nodes explored: 0
+Memory: 13.4609375 MB
+Duration: 0.24143385887145996 secs
+
+
+===================================================
+===================================================
+
+
+Datatime (UTC+7): 22/10/2025 20:10:57 PM
+Problem: Testcases/MICRO COSMOS/1.txt
+Algorithm: Depth First Search
+Solution: R, R, R, U, U, L, D, R, D, L, L, U, L, D, L, D, D, R, R, U, D, L, L, U, R, L, U, L, L, U, U, R, D, R, D, R, R, L, L, U, L, L, D, R, U, R, D, R, R, U, R, R, D, L, L, L, D, D, R, U, L, U, R, L, L, R, R, U, R, R, D, L, U, L, D, L, D, D, R, U, L, U, L, U, R, R, D, R, R, U, L, D, L, L, D, D, R, U, D, L, L, U, R, U, U, R, D, R, R, U, L, D, L, L, U, R, L, L, D, U, L, L, D, R, R, U, R, R, D, R, R, U, L, D, L, L, D, D, R, U, L, U, U, R, D, L, D, D, R, U, L, U, L, R, D, R, U, D, D, L, L, U, R, U, U, L, D, U, L, L, D, R, R, U, R, D, R, R, R, U, U, L, D, R, D, L, L, R, U, L, D, D, D, L, L, U, D, R, R, U, U, U, L, L, R, R, D, D, D, L, L, U, R, D, R, U, D, L, L, U, U, D, R, R, U, D, D, L, L, U, U, R, U, R, D, R, R, U, L, D, L, L, U, R, D, R, R, U, L, D, L, L, D, D, R, U, D, L, L, U, U, R, U, R, L, D, D, R, U, D, D, L, L, U, U, L, L, U, U, R, D, L, D, R, R, D, R, R, U, L, U, L, D, R, R, R, R, U, U, L, D, R, D, L, L, R, U, L, L, D, L, L, L, U, U, R, D, R, R, R, D, R, R, U, L, D, L, D, D, L, L, U, D, R, R, U, U, L, U, R, D, R, R, U, U, L, D, R, D, L, L, U, L, L, D, R, R, D, D, L, L, U, D, R, R, U, U, L, U, L, D, U, L, L, D, R, R, U, R, R, D, D, D, L, L, U, U, R, U, R, D, L, L, L, U, R, D, R, R, U, R, R, D, L, L, L, L, D, D, R, R, U, D, L, L, U, U, R, R, D, D, L, L, U, U, U, L, L, D, R, R, D, D, R, R, U, L, R, U, U, R, R, D, L, U, L, L, D, R, D, D, L, L, U, D, R, R, U, U, L, D, R, L, U, U, R, R, R, D, L, L, U, L, L, R, R, D, D, L, L, U, R, R, D, L, L, U, L, L, U, U, R, D, R, D, R, R, U, R, R, D, L, L, D, L, L, U, R, L, U, R, R, L, D, D, R, U, R, R, U, U, L, D, R, D, L, L, D, L, L, U, U, R, R, D, R, R, U, L, D, L, D, L, L, U, U, R, R, D, R, R, U, U, L, D, L, D, D, L, L, U, U, L, L, D, R, L, R, U, R, R, R, D, D, L, L, U, D, R, R, U, U, R, R, D, L, U, L, L, D, R, L, L, L, U, R, D, R, R, U, R, R, D, L, L
+Number of steps: 605
+Nodes generated: 826469
+Nodes repeated: 525574
+Nodes explored: 300896
+Memory: 78.05859375 MB
+Duration: 1.1993558406829834 secs
+
+
+===================================================
+===================================================
+
+
