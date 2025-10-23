@@ -71,7 +71,7 @@ def a_star_sokoban(grid, start, boxes, goals):
     start_state = (start, tuple(sorted(boxes)))
 
     pq = []
-    heapq.heappush(pq, (heuristic(start, boxes, goals), 0, start_state, ""))  # (f = g+h, g, state, path)
+    heapq.heappush(pq, (heuristic(start, boxes, goals), 0, 0, start_state, ""))  # (f = g+h, g, pushes, state, path)
 
     visited = set()
     moves = [(1,0,'D'),(-1,0,'U'),(0,1,'R'),(0,-1,'L')]
@@ -82,7 +82,7 @@ def a_star_sokoban(grid, start, boxes, goals):
     nodes_explored = 0
 
     while pq:
-        f, g, (player, boxes), path = heapq.heappop(pq)
+        f, g, pushes, (player, boxes), path = heapq.heappop(pq)
 
         # Mỗi lần lấy ra khỏi hàng đợi => 1 node được explore
         nodes_explored += 1
@@ -90,7 +90,7 @@ def a_star_sokoban(grid, start, boxes, goals):
         # Kiểm tra đích
         if all(b in goals for b in boxes):
             print(f"✅ Giải thành công sau {nodes_explored} trạng thái duyệt, {nodes_generated} node sinh ra.")
-            return path, nodes_generated, nodes_repeated, nodes_explored
+            return path, pushes, nodes_generated, nodes_repeated, nodes_explored
 
         if (player, boxes) in visited:
             nodes_repeated += 1
@@ -106,8 +106,10 @@ def a_star_sokoban(grid, start, boxes, goals):
                 continue
 
             new_boxes = set(boxes)
+            is_pushed = 0
             # Nếu gặp thùng ở ô kế tiếp → thử đẩy
             if (nx, ny) in new_boxes:
+                is_pushed = 1
                 bx, by = nx + dx, ny + dy
                 if not (0 <= bx < rows and 0 <= by < cols):
                     continue
@@ -124,12 +126,13 @@ def a_star_sokoban(grid, start, boxes, goals):
                 continue
 
             new_g = g + 1
+            new_pushes = pushes + 1 if is_pushed else pushes
             h_val = heuristic((nx, ny), new_boxes, goals)
-            heapq.heappush(pq, (new_g + h_val, new_g, new_state, path + move))
+            heapq.heappush(pq, (new_g + h_val, new_g, new_pushes, new_state, path + move))
             nodes_generated += 1
 
     print(f"❌ Không tìm được lời giải. Tổng explored: {nodes_explored}, generated: {nodes_generated}")
-    return None, nodes_generated, nodes_repeated, nodes_explored
+    return None, 0, nodes_generated, nodes_repeated, nodes_explored
 
 
 def read_sokoban_map(filename):
@@ -215,7 +218,7 @@ if __name__ == '__main__':
         startTime = time.time()
         itemMemory = psutil.Process(os.getpid()).memory_info().rss / (1024 * 1024)
         
-        (path, node_generated, nodes_repeated, node_explored) = a_star_sokoban(grid, start, boxes, goals)
+        (path, pushed, node_generated, nodes_repeated, node_explored) = a_star_sokoban(grid, start, boxes, goals)
         
         times = time.time() - startTime
         memo_info = abs(psutil.Process(os.getpid()).memory_info().rss / (1024 * 1024) - itemMemory)

@@ -165,6 +165,7 @@ def dfs(curr_player, curr_boxes):
     return (node_generated, step, end, memo_info, [m.get_char() for m in actions])
 # =============================== DFS ===============================
 if __name__ == '__main__':
+    map_list = ['MINI COSMOS', 'MICRO COSMOS']
     i = -1
     if not os.path.exists("DFS.csv"):
          header_mode = "w+"
@@ -179,9 +180,11 @@ if __name__ == '__main__':
     print("Loading DFS algorithm results from testcase {}".format(i+1))
 
     for j in range(i, 80):
+        map_name = map_list[int(j/40)]
+        level_num = j%40 + 1
         walls, goals, boxes, paths, player = set_value("./Testcases/{}/{}.txt".format(map_list[int(j/40)], j%40+1))
         distanceToGoal, dead_squares = set_distance()
-        print("\nSolving testcase {}: ".format(j+1))
+        print(f"\nSolving testcase {j+1} ({map_name} {level_num}): ")
         (node_created, step, times, memo, actions) = dfs(player, boxes)
 
         f = open("DFS.csv", 'a+')
