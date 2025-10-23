@@ -1,0 +1,16 @@
+Datatime (UTC+7): 22/10/2025 23:18:47 PM
+Problem: Testcases/MINI COSMOS/39.txt
+Algorithm: A* Search
+Solution: D, D, R, R, U, U, L, R, D, D, L, L, U, U, U, L, U, R, R, U, R, R, D, L, D, D, L, L, U, U, R, U, R, D, L, L, D, D, D, D, R, R, R, R, U, U, L, L, L, R, R, R, D, D, L, L, L, L, U, U, R, R, D, U, R, R, D, D, L, L, L, D, L, U, R, R, U, U, L, L, U, L, U, R, R, U, R, R, D, L, D, D, L, L, U, U, R, U, R, D
+Number of steps: 100
+Nodes generated: 7876
+Nodes repeated: 8550
+Nodes explored: 7778
+Memory: 36.1796875 MB
+Duration: 0.04349327087402344 secs
+
+
+===================================================
+===================================================
+
+

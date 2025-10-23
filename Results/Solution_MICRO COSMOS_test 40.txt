@@ -1,3 +1,35 @@
+Datatime (UTC+7): 23/10/2025 21:00:53 PM
+Problem: Testcases/MICRO COSMOS/40.txt
+Algorithm: A* Search
+Solution: L, L, D, D, R, D, R, U, L, L, U, U, R, R, R, U, U, L, L, D, U, R, R, D, D, L, L, R, R, U, R, D, D, R, D, L, L, L, U, D, R, R, U, U, L, U, U, L, L, D, D, R, L, U, L, L, D, R, D, D, R, R, U, U, L, R, D, D, L, L, U, U, R, U, U, R, R, D, R, D, D, D, L, L, U, U, L, L, L, U, R, D, D, D, R, D, R, U, R, R, U, U, L, L, L, R, R, U, U, L, L, D, L, D, R, U, U, R, R, D, D, L, L, R, R, R, D, D, L, L, U, D, R, R, U, U, L, U, U, L, L, D, D, R, L, U, L, L, D, R
+Number of steps: 150
+Nodes generated: 8140
+Nodes repeated: 9187
+Nodes explored: 8117
+Memory: 8.63671875 MB
+Duration: 0.045649051666259766 secs
+
+
+===================================================
+===================================================
+
+
+Datatime (UTC+7): 23/10/2025 21:00:47 PM
+Problem: Testcases/MICRO COSMOS/40.txt
+Algorithm: A* Search
+Solution: L, L, D, D, R, D, R, U, L, L, U, U, R, R, R, U, U, L, L, D, U, R, R, D, D, L, L, R, R, U, R, D, D, R, D, L, L, L, U, D, R, R, U, U, L, U, U, L, L, D, D, R, L, U, L, L, D, R, D, D, R, R, U, U, L, R, D, D, L, L, U, U, R, U, U, R, R, D, R, D, D, D, L, L, U, U, L, L, L, U, R, D, D, D, R, D, R, U, R, R, U, U, L, L, L, R, R, U, U, L, L, D, L, D, R, U, U, R, R, D, D, L, L, R, R, R, D, D, L, L, U, D, R, R, U, U, L, U, U, L, L, D, D, R, L, U, L, L, D, R
+Number of steps: 150
+Nodes generated: 8140
+Nodes repeated: 9187
+Nodes explored: 8117
+Memory: 8.63671875 MB
+Duration: 0.04725170135498047 secs
+
+
+===================================================
+===================================================
+
+
 Datatime (UTC+7): 22/10/2025 20:11:06 PM
 Problem: Testcases/MICRO COSMOS/40.txt
 Algorithm: Depth First Search

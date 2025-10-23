@@ -32,6 +32,7 @@ ORANGE = '#ff631c'
 BLUE_LIGHT = (40, 53, 88)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
+DARK_BLUE = '#00264d'
 YELLOW = (255, 255, 0)
 YELLOW_LIGHT = (255, 255, 51)
 BROWN = (210, 105, 30)
@@ -93,7 +94,7 @@ wall = pygame.transform.scale(wall, (lengthSquare, lengthSquare))
 box = pygame.image.load('Items/box.png')
 box = pygame.transform.scale(box, (lengthSquare, lengthSquare))
 
-goal = pygame.image.load('Items/goal.jpg')
+goal = pygame.image.load('Items/goals.png')
 goal = pygame.transform.scale(goal, (lengthSquare, lengthSquare))
 
 player_ = pygame.image.load('Items/player.png')
@@ -344,9 +345,10 @@ def draw_board():
 		surface.blit(wall, [offsetX + lengthSquare * point[0], offsetY + lengthSquare * point[1]])
 	
 	for point in paths:
-		pygame.draw.rect(surface, 'white', [offsetX + lengthSquare * point[0], offsetY + lengthSquare * point[1], lengthSquare, lengthSquare])
+		pygame.draw.rect(surface, DARK_BLUE, [offsetX + lengthSquare * point[0], offsetY + lengthSquare * point[1], lengthSquare, lengthSquare])
 
 	for point in goals:
+		pygame.draw.rect(surface, DARK_BLUE, [offsetX + lengthSquare * point[0], offsetY + lengthSquare * point[1], lengthSquare, lengthSquare])
 		surface.blit(goal, [offsetX + lengthSquare * point[0], offsetY + lengthSquare * point[1]])
 
 	point = player
@@ -365,7 +367,7 @@ def reset_data():
 	
 	wall = pygame.image.load('Items/wall.jpg')
 	box = pygame.image.load('Items/box.png')
-	goal = pygame.image.load('Items/goal.jpg')
+	goal = pygame.image.load('Items/goals.png')
 	player_ = pygame.image.load('Items/player.png')
 	name = "./Testcases/{}/{}.txt".format(map_list[map_index], level+1)
 	walls, goals, boxes, paths, player, numsRow, numsCol = set_value(name)

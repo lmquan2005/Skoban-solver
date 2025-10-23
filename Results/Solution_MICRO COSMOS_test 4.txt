@@ -1,0 +1,16 @@
+Datatime (UTC+7): 22/10/2025 23:17:43 PM
+Problem: Testcases/MICRO COSMOS/4.txt
+Algorithm: Depth First Search
+Solution: R, R, R, R, U, U, L, D, R, D, L, L, L, U, R, D, L, D, L, L, U, U, R, R, D, D, L, L, U, L, L, U, R, R, D, D, R, R, U, L, L, R, R, R, R, R, U, U, L, D, R, D, L, L, L, U, R, D, R, R, U, U, L, D, R, D, L, U, L, L, D, D, L, L, U, U, R, R, R, R, D, R, U, D, L, U, L, L, D, R, R, L, L, D, L, L, U, R, R, R, L, D, L, L, U, U, L, L, D, R, R, R, R
+Number of steps: 113
+Nodes generated: 362519
+Nodes repeated: 225620
+Nodes explored: 136900
+Memory: 40.203125 MB
+Duration: 0.5707964897155762 secs
+
+
+===================================================
+===================================================
+
+

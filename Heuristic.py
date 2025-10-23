@@ -1,4 +1,6 @@
 import heapq
+import os
+import psutil
 from collections import deque
 import time
 
@@ -171,3 +173,74 @@ def read_sokoban_map(filename):
                 goals.add((y, x))
 
     return grid, start, boxes, goals
+
+# =============================== MAIN ===============================
+if __name__ == '__main__':
+    map_list = ['MINI COSMOS', 'MICRO COSMOS']
+    
+    # Kiểm tra file CSV
+    output_csv = "A_star.csv"
+    if not os.path.exists(output_csv):
+         header_mode = "w+"
+    else:
+         header_mode = "w"  # Ghi đè file cũ
+
+    with open(output_csv, header_mode) as f:
+        f.write("Map,Level,Algorithm,Node generated,Node explored,Step,Time (s),Memory (MB)\n")
+
+    # Mở file kết quả chi tiết
+    result_file = "result_A_star.txt"
+    # Xóa file kết quả cũ
+    if os.path.exists(result_file):
+        os.remove(result_file)
+
+    i = 0
+    
+    print(f"Loading A* algorithm results from testcase {i+1}")
+
+    for j in range(i, 80):
+        map_name = map_list[int(j/40)]
+        level_num = j%40 + 1
+        filepath = f"./Testcases/{map_name}/{level_num}.txt"
+        
+        if not os.path.exists(filepath):
+            print(f"File not found: {filepath}")
+            continue
+            
+        grid, start, boxes, goals = read_sokoban_map(filepath)
+        
+        print(f"\nSolving testcase {j+1} ({map_name} {level_num}): ")
+        
+        # Đo lường
+        startTime = time.time()
+        itemMemory = psutil.Process(os.getpid()).memory_info().rss / (1024 * 1024)
+        
+        (path, node_generated, nodes_repeated, node_explored) = a_star_sokoban(grid, start, boxes, goals)
+        
+        times = time.time() - startTime
+        memo_info = abs(psutil.Process(os.getpid()).memory_info().rss / (1024 * 1024) - itemMemory)
+
+        if path is not None:
+            step = len(path)
+        else:
+            step = 0
+
+        # Ghi vào file CSV
+        with open(output_csv, 'a+') as f:
+            f.write(f"{map_name},{level_num},A*,"
+                    f"{node_generated},{node_explored},{step},"
+                    f"{times:0.6f},{memo_info:0.6f}\n")
+            
+        print(f"Results testcase {j+1}. Node generated: {node_generated}, "
+              f"Node explored: {node_explored}, Step: {step}, "
+              f"Time: {times:0.6f} s, Memory: {memo_info:0.6f} MB")
+
+        # Ghi vào file result
+        with open(result_file, "a+", encoding="utf-8") as rf:
+             rf.write(f"=== Testcase {j+1} ({map_name} {level_num}) ===\n")
+             if path is not None:
+                rf.write(f"Path: {path}\n")
+             else:
+                rf.write("No solution found.\n")
+
+    print("\nSolving A* algorithm results Completed")

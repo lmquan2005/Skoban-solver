@@ -1,0 +1,16 @@
+Datatime (UTC+7): 22/10/2025 23:19:26 PM
+Problem: Testcases/MINI COSMOS/32.txt
+Algorithm: Depth First Search
+Solution: L, U, U, R, R, D, R, D, L, U, U, L, L, D, D, D, D, R, R, U, U, L, R, D, D, L, L, U, U, U, L, U, U, R, D, R, R, D, R, D, L, D, D, L, L, U, U, U, L, U, R, D, D, D, D, R, R, U, U, L, R, D, D, L, L, U, U, U, L, U, U, R, D, D, D, R, R, U, U, L, R, D, D, L, L, U, L, U, U, R, D
+Number of steps: 91
+Nodes generated: 4809
+Nodes repeated: 2691
+Nodes explored: 2119
+Memory: 36.19140625 MB
+Duration: 0.006031990051269531 secs
+
+
+===================================================
+===================================================
+
+
