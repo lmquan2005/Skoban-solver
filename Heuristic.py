@@ -1,4 +1,6 @@
 import heapq
+import os
+import psutil
 from collections import deque
 import time
 
@@ -69,7 +71,7 @@ def a_star_sokoban(grid, start, boxes, goals):
     start_state = (start, tuple(sorted(boxes)))
 
     pq = []
-    heapq.heappush(pq, (heuristic(start, boxes, goals), 0, start_state, ""))  # (f = g+h, g, state, path)
+    heapq.heappush(pq, (heuristic(start, boxes, goals), 0, 0, start_state, ""))  # (f = g+h, g, pushes, state, path)
 
     visited = set()
     moves = [(1,0,'D'),(-1,0,'U'),(0,1,'R'),(0,-1,'L')]
@@ -80,7 +82,7 @@ def a_star_sokoban(grid, start, boxes, goals):
     nodes_explored = 0
 
     while pq:
-        f, g, (player, boxes), path = heapq.heappop(pq)
+        f, g, pushes, (player, boxes), path = heapq.heappop(pq)
 
         # Mỗi lần lấy ra khỏi hàng đợi => 1 node được explore
         nodes_explored += 1
@@ -88,7 +90,7 @@ def a_star_sokoban(grid, start, boxes, goals):
         # Kiểm tra đích
         if all(b in goals for b in boxes):
             print(f"✅ Giải thành công sau {nodes_explored} trạng thái duyệt, {nodes_generated} node sinh ra.")
-            return path, nodes_generated, nodes_repeated, nodes_explored
+            return path, pushes, nodes_generated, nodes_repeated, nodes_explored
 
         if (player, boxes) in visited:
             nodes_repeated += 1
@@ -104,8 +106,10 @@ def a_star_sokoban(grid, start, boxes, goals):
                 continue
 
             new_boxes = set(boxes)
+            is_pushed = 0
             # Nếu gặp thùng ở ô kế tiếp → thử đẩy
             if (nx, ny) in new_boxes:
+                is_pushed = 1
                 bx, by = nx + dx, ny + dy
                 if not (0 <= bx < rows and 0 <= by < cols):
                     continue
@@ -122,12 +126,13 @@ def a_star_sokoban(grid, start, boxes, goals):
                 continue
 
             new_g = g + 1
+            new_pushes = pushes + 1 if is_pushed else pushes
             h_val = heuristic((nx, ny), new_boxes, goals)
-            heapq.heappush(pq, (new_g + h_val, new_g, new_state, path + move))
+            heapq.heappush(pq, (new_g + h_val, new_g, new_pushes, new_state, path + move))
             nodes_generated += 1
 
     print(f"❌ Không tìm được lời giải. Tổng explored: {nodes_explored}, generated: {nodes_generated}")
-    return None, nodes_generated, nodes_repeated, nodes_explored
+    return None, 0, nodes_generated, nodes_repeated, nodes_explored
 
 
 def read_sokoban_map(filename):
@@ -171,3 +176,74 @@ def read_sokoban_map(filename):
                 goals.add((y, x))
 
     return grid, start, boxes, goals
+
+# =============================== MAIN ===============================
+if __name__ == '__main__':
+    map_list = ['MINI COSMOS', 'MICRO COSMOS']
+    
+    # Kiểm tra file CSV
+    output_csv = "A_star.csv"
+    if not os.path.exists(output_csv):
+         header_mode = "w+"
+    else:
+         header_mode = "w"  # Ghi đè file cũ
+
+    with open(output_csv, header_mode) as f:
+        f.write("Map,Level,Algorithm,Node generated,Node explored,Step,Time (s),Memory (MB)\n")
+
+    # Mở file kết quả chi tiết
+    result_file = "result_A_star.txt"
+    # Xóa file kết quả cũ
+    if os.path.exists(result_file):
+        os.remove(result_file)
+
+    i = 0
+    
+    print(f"Loading A* algorithm results from testcase {i+1}")
+
+    for j in range(i, 80):
+        map_name = map_list[int(j/40)]
+        level_num = j%40 + 1
+        filepath = f"./Testcases/{map_name}/{level_num}.txt"
+        
+        if not os.path.exists(filepath):
+            print(f"File not found: {filepath}")
+            continue
+            
+        grid, start, boxes, goals = read_sokoban_map(filepath)
+        
+        print(f"\nSolving testcase {j+1} ({map_name} {level_num}): ")
+        
+        # Đo lường
+        startTime = time.time()
+        itemMemory = psutil.Process(os.getpid()).memory_info().rss / (1024 * 1024)
+        
+        (path, pushed, node_generated, nodes_repeated, node_explored) = a_star_sokoban(grid, start, boxes, goals)
+        
+        times = time.time() - startTime
+        memo_info = abs(psutil.Process(os.getpid()).memory_info().rss / (1024 * 1024) - itemMemory)
+
+        if path is not None:
+            step = len(path)
+        else:
+            step = 0
+
+        # Ghi vào file CSV
+        with open(output_csv, 'a+') as f:
+            f.write(f"{map_name},{level_num},A*,"
+                    f"{node_generated},{node_explored},{step},"
+                    f"{times:0.6f},{memo_info:0.6f}\n")
+            
+        print(f"Results testcase {j+1}. Node generated: {node_generated}, "
+              f"Node explored: {node_explored}, Step: {step}, "
+              f"Time: {times:0.6f} s, Memory: {memo_info:0.6f} MB")
+
+        # Ghi vào file result
+        with open(result_file, "a+", encoding="utf-8") as rf:
+             rf.write(f"=== Testcase {j+1} ({map_name} {level_num}) ===\n")
+             if path is not None:
+                rf.write(f"Path: {path}\n")
+             else:
+                rf.write("No solution found.\n")
+
+    print("\nSolving A* algorithm results Completed")

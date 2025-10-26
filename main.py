@@ -32,6 +32,7 @@ ORANGE = '#ff631c'
 BLUE_LIGHT = (40, 53, 88)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
+DARK_BLUE = '#00264d'
 YELLOW = (255, 255, 0)
 YELLOW_LIGHT = (255, 255, 51)
 BROWN = (210, 105, 30)
@@ -93,7 +94,7 @@ wall = pygame.transform.scale(wall, (lengthSquare, lengthSquare))
 box = pygame.image.load('Items/box.png')
 box = pygame.transform.scale(box, (lengthSquare, lengthSquare))
 
-goal = pygame.image.load('Items/goal.jpg')
+goal = pygame.image.load('Items/goals.png')
 goal = pygame.transform.scale(goal, (lengthSquare, lengthSquare))
 
 player_ = pygame.image.load('Items/player.png')
@@ -128,7 +129,7 @@ A_rect = Rect(830 + 240, 330, 100, 48)
 start_rect = Rect(820 + 86, 400, 185, 40)
 
 restart_rect = Rect(820 + 130, 650, 100, 40)
-visualize_rect = Rect(820 + 135, 0 + 750, 161, 34)
+visualize_rect = Rect(820 + 100, 700 + 20, 161, 34)
 undo_rect = Rect(820 + 80, 650, 40, 40)
 redo_rect = Rect(820 + 240, 650, 40, 40)
 
@@ -210,12 +211,12 @@ def display_manual_button(mode_selected):
 	text_manual = buttonFont.render("Manually", True, YELLOW)
 	surface.blit(text_manual, [834, 342])
 
-def display_bfs_button(mode_selected):
+def display_dfs_button(mode_selected):
 	if mode_selected == 2:
 		pygame.draw.rect(surface, YELLOW, pygame.Rect(830 + 120 - 1, 330 - 1, 100 + 2, 48 + 2),  0, 6)
 	pygame.draw.rect(surface, BLACK, pygame.Rect(830 + 120, 330, 100, 48),  0, 6)
-	text_bfs = buttonFont.render("DFS", True, YELLOW)
-	surface.blit(text_bfs, [834 + 120 + 25, 342])
+	text_dfs = buttonFont.render("DFS", True, YELLOW)
+	surface.blit(text_dfs, [834 + 120 + 25, 342])
 
 def display_A_button(mode_selected):
 	if mode_selected == 3:
@@ -246,7 +247,7 @@ def display_step_1():
 	display_text_1_40()
 	display_title_gameplay_selection(RED if step == 2 else GREEN_DARK)
 	display_manual_button(mode)
-	display_bfs_button(mode)
+	display_dfs_button(mode)
 	display_A_button(mode)
 	display_start_button(step)
 
@@ -284,7 +285,7 @@ def display_button_redo():
 	surface.blit(redo_button, [820 + 242, 652])
 
 def display_visualize():
-	surface.blit(visualize_button, [820 + 135, 0 + 747])
+	surface.blit(visualize_button, [820 + 100, 700 + 20])
 
 def display_content_step_2():
 	status_str = ""
@@ -344,9 +345,10 @@ def draw_board():
 		surface.blit(wall, [offsetX + lengthSquare * point[0], offsetY + lengthSquare * point[1]])
 	
 	for point in paths:
-		pygame.draw.rect(surface, 'white', [offsetX + lengthSquare * point[0], offsetY + lengthSquare * point[1], lengthSquare, lengthSquare])
+		pygame.draw.rect(surface, DARK_BLUE, [offsetX + lengthSquare * point[0], offsetY + lengthSquare * point[1], lengthSquare, lengthSquare])
 
 	for point in goals:
+		pygame.draw.rect(surface, DARK_BLUE, [offsetX + lengthSquare * point[0], offsetY + lengthSquare * point[1], lengthSquare, lengthSquare])
 		surface.blit(goal, [offsetX + lengthSquare * point[0], offsetY + lengthSquare * point[1]])
 
 	point = player
@@ -365,7 +367,7 @@ def reset_data():
 	
 	wall = pygame.image.load('Items/wall.jpg')
 	box = pygame.image.load('Items/box.png')
-	goal = pygame.image.load('Items/goal.jpg')
+	goal = pygame.image.load('Items/goals.png')
 	player_ = pygame.image.load('Items/player.png')
 	name = "./Testcases/{}/{}.txt".format(map_list[map_index], level+1)
 	walls, goals, boxes, paths, player, numsRow, numsCol = set_value(name)
@@ -532,7 +534,7 @@ def set_distance():
 #----------------------
 def print_results(board, gen, rep, expl, memo, dur):
 	if mode == 2:
-		print("\n-- Algorithm: Breadth first search --")
+		print("\n-- Algorithm: Depth first search --")
 	elif mode == 3:
 		print("\n-- Algorithm: A star --")
 	print("Sequence: ", end="")
@@ -613,7 +615,7 @@ def dfs(curr_player, curr_boxes):
 						memo_info,
 						timeTook
 					)
-					return (node_generated, steps + 1, timeTook, memo_info, actions + [(m, is_pushed)])
+					return (node_generated, steps + 1, push + is_pushed, timeTook, memo_info, actions + [(m, is_pushed)])
 
 				frontier.append((new_player, new_boxes, steps + 1, push + is_pushed, actions + [(m, is_pushed)]))
 			else:
@@ -643,7 +645,8 @@ if __name__ == '__main__':
 			# 1️⃣ Giai đoạn tìm đường (chưa visualize)
 			grid, player1, boxes1, goals1 = read_sokoban_map(name)
 			start_time = time.time()
-			path, node_generated, node_repeated, node_explored = a_star_sokoban(grid, player1, boxes1, goals1)
+			path, pushed, node_generated, node_repeated, node_explored = a_star_sokoban(grid, player1, boxes1, goals1)
+			stepNode = len(path)
 			timeTook = time.time() - start_time
 
 			if path:
@@ -682,7 +685,7 @@ if __name__ == '__main__':
 			else:
 				win = 1
 		if step == 2 and mode == 2 and win == 0:
-			(node_created, steps, times, memo, moves) = dfs(player, boxes)
+			(node_created, stepNode, pushed, times, memo, moves) = dfs(player, boxes)
         
 		if len(moves) > 0 and visualized == 1:
 			(_, is_pushed, player, boxes) = move(player, boxes, moves[0][0])
@@ -788,6 +791,8 @@ if __name__ == '__main__':
 						if win == 1:
 							if visualized == 0:
 								if visualize_rect.collidepoint(x,y):
+									stepNode = 0
+									pushed = 0
 									visualized = 1
 					if mode == 3:
 						if restart_rect.collidepoint(x, y):
@@ -796,6 +801,8 @@ if __name__ == '__main__':
 						if win == 1 and a_star_path and visualize_rect.collidepoint(x, y):
 							# 2️⃣ Khi bấm "Visualize", bắt đầu chạy đường đi
 							actions = []
+							stepNode = 0
+							pushed = 0
 							px, py = player
 							current_boxes = set(boxes)
 							for move_char in a_star_path:

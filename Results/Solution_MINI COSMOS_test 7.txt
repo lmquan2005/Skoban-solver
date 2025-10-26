@@ -1,0 +1,16 @@
+Datatime (UTC+7): 24/10/2025 00:54:49 AM
+Problem: Testcases/MINI COSMOS/7.txt
+Algorithm: A* Search
+Solution: L, U, L, L, U, R, R, R, L, L, U, U, R, R, D, R, D, L, L, R, U, U, L, L, D, D, L, D, R, U, R, D, D, R, R, U, R, U, L, L, L, R, U, U, L, L, D, D, R, D, L, R, D, R, R, D, D, L, L, U, U
+Number of steps: 61
+Nodes generated: 2092
+Nodes repeated: 2308
+Nodes explored: 2062
+Memory: 7.375 MB
+Duration: 0.013215780258178711 secs
+
+
+===================================================
+===================================================
+
+
